@@ -132,4 +132,13 @@ public class Entity {
     public void setHitH(int hitH) {
         this.hitH = hitH;
     }
+    
+    public boolean equals(Entity otherEntity){
+        return (x == otherEntity.x && y == otherEntity.y && width == otherEntity.width && height == otherEntity.height && hitbox == otherEntity.hitbox);
+    }
+    
+    public String toString(){
+        return "\nX Position: " + x + "\nY Position: " + y + "Width: " + width + "\nHeigth: " 
+                + height + "\nHitbox: " + hitbox;
+    }
 }
