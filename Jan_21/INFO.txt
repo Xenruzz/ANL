@@ -1,0 +1,9 @@
+Alex
+Tried to set up basic board but was full of bugs and glitches
+Will try to finish next time
+
+Finished:
+- Entity Class
+- Player Class
+- Board Class
+- Main Class
