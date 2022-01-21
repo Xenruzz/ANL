@@ -16,12 +16,13 @@ public class Entity {
     protected int hitW;
     protected int hitH;
 
-    public Entity(int x, int y, int w, int h) {
+    public Entity(int x, int y, int w, int h, Image image) {
         this.setX(x);
         this.setY(y);
         this.setW(w);
         this.setH(h);
-
+        this.setImage(image);
+        
         setHitX(x);
         setHitY(y);
 
@@ -33,15 +34,14 @@ public class Entity {
 
     }
 
-    public Entity(int x, int y, int w, int h, boolean hitOn, int hitX, int hitY, int hitW, int hitH, boolean clipOn) {
-        this(x, y, w, h);
+    public Entity(int x, int y, int w, int h, boolean hitOn, int hitX, int hitY, int hitW, int hitH, boolean clipOn, Image image) {
+        this(x, y, w, h, image);
 
         this.setHitOn(hitOn);
         this.setHitX(hitX);
         this.setHitY(hitY);
         this.setHitW(hitW);
         this.setHitH(hitH);
-
         this.setClipOn(clipOn);
     }
 
