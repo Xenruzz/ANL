@@ -134,12 +134,12 @@ public class Entity {
     }
     
     public boolean equals(Entity otherEntity){
-        return (x == otherEntity.x && y == otherEntity.y && w == otherEntity.w && h == otherEntity.h && hitOn == otherEntity.hitOn && clipOn == otherEntity.clipOn && hitX = otherEntity.hitX
+        return (x == otherEntity.x && y == otherEntity.y && w == otherEntity.w && h == otherEntity.h && hitOn == otherEntity.hitOn && clipOn == otherEntity.clipOn && hitX == otherEntity.hitX
                && hitY == otherEntity.hitY && hitW == otherEntity.hitW && hitH == otherEntity.hitH && image.equals(otherEntity.image));
     }
     
     public String toString(){
-        return "\nX Position: " + x + "\nY Position: " + y + "Width: " + width + "\nHeigth: " 
-                + height + "\nHit On: " + hitOn + "\nClip On: " + clipOn + "Hitbox X: " + hitX + "HitboxY: " + hitY + "Hitbox width: " + hitW + "Hitbox height: " + hitH ;
+        return "\nX Position: " + x + "\nY Position: " + y + "Width: " + w + "\nHeigth: " 
+                + h + "\nHit On: " + hitOn + "\nClip On: " + clipOn + "Hitbox X: " + hitX + "HitboxY: " + hitY + "Hitbox width: " + hitW + "Hitbox height: " + hitH ;
     }
 }
