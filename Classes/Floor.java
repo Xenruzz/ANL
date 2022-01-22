@@ -7,18 +7,15 @@ package bulletbox;
 
 import java.awt.*;
 
-/**
- *
- * @author NaSmi4399
- */
+
 public class Floor extends Entity implements Tile{
     static Toolkit t = Toolkit.getDefaultToolkit();
-    static Image floorImage = t.getImage("background_tile.png");
+    static Image floorImage = t.getImage("floorTile.png");
     private static final int TILETYPE = 0;
     
     
     public Floor(int x, int y){ 
-        super(x,y,TILESIZE,TILESIZE,true,x,y,TILESIZE,TILESIZE,true, floorImage);     
+        super(x,y,TILESIZE,TILESIZE,false,x,y,TILESIZE,TILESIZE,true, floorImage);     
     }
     
     public int getTileType(){
@@ -35,7 +32,7 @@ public class Floor extends Entity implements Tile{
     }
     
     public String toString(){
-        return "Floor:" + super.toString() + "Tile type: " + tileType;
+        return "Floor:" + super.toString() + "Tile type: " + TILETYPE;
     }
             
 }
