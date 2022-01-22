@@ -1,14 +1,12 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Nathan Smith
+ * January 22, 2022
+ * Tile interface to govern tiles and achieve polymorphism
  */
 package bulletbox;
 
-/**
- *
- * @author NaSmi4399
- */
 public interface Tile {
-    
+    static final int TILESIZE = 50;
+    public int getTileType();
+    public String toString();
 }
