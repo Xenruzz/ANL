@@ -1,8 +1,4 @@
-
 package finalproject;
-
-//Alex
-package com.company;
 
 import java.awt.*;
 
