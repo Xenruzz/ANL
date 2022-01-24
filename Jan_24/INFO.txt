@@ -1,0 +1,6 @@
+Alex
+
+Spent all period working on panning the camera with the player
+Tried many approaches such as downloading auxillary packages, trying the "translate()" method in 2D Graphics
+
+The player image is not actually changes, everything is drawn relative to player position
