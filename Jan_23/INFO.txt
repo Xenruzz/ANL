@@ -1,0 +1,3 @@
+Lado
+-Made image appear on screen
+-animated image moving by keyboard input
