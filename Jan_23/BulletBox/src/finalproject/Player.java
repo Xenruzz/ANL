@@ -6,6 +6,7 @@ import javax.swing.ImageIcon;
 public class Player extends Entity {
     private int dx;
     private int dy;
+    private boolean upPressed, downPressed, leftPressed, rightPressed;
 
     public Player(int x, int y) {
         super(x, y, 20, 20);
@@ -26,6 +27,25 @@ public class Player extends Entity {
     }
 
     public void move() {
+        dy = 0;
+        dx = 0;
+        if (leftPressed == true){
+            dx = dx-3;
+        }
+        if (rightPressed == true){
+            dx = dx+3;
+        } 
+        if (upPressed == true){
+            dy = dy-3;
+        }
+        if (downPressed == true){
+            dy = dy+3;
+        }
+        
+        if (dx!=0 && dy!=0){
+            dx = (dx/3) * 2;
+            dy = (dy/3) * 2;
+        }
         x += dx;
         y += dy;
     }
@@ -33,29 +53,36 @@ public class Player extends Entity {
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
 
-        switch (key) {
-            case KeyEvent.VK_LEFT -> dx = -2;
-            case KeyEvent.VK_RIGHT -> dx = 2;
-            case KeyEvent.VK_UP -> dy = -2;
-            case KeyEvent.VK_DOWN -> dy = 2;
-            default -> {
-                dy = 0;
-                dx = 0;
-            }
-        }
+        
+        if (key == KeyEvent.VK_LEFT){
+            leftPressed = true;
+        } 
+        if (key == KeyEvent.VK_RIGHT){
+            rightPressed = true;
+        } 
+        if (key == KeyEvent.VK_UP){
+            upPressed = true;
+        } 
+        if (key == KeyEvent.VK_DOWN){
+            downPressed = true;
+        } 
+        
+        
     }
 
     public void keyReleased(KeyEvent e) {
         int key = e.getKeyCode();
-        switch (key) {
-            case KeyEvent.VK_LEFT -> dx = 0;
-            case KeyEvent.VK_RIGHT -> dx = 0;
-            case KeyEvent.VK_UP -> dy = 0;
-            case KeyEvent.VK_DOWN -> dy = 0;
-            default -> {
-                dy = 0;
-                dx = 0;
-            }
+        if (key == KeyEvent.VK_LEFT){
+            leftPressed = false;
+        } 
+        if (key == KeyEvent.VK_RIGHT){
+            rightPressed = false;
         }
+        if (key == KeyEvent.VK_UP){
+            upPressed = false;
+        } 
+        if (key == KeyEvent.VK_DOWN){
+            downPressed = false;
+        } 
     }
 }
