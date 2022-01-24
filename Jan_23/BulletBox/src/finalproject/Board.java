@@ -60,8 +60,8 @@ public class Board extends JPanel implements ActionListener {
         
         God.move();
         
-        repaint(God.getX()-1, God.getY()-1, 
-                God.getW()+2, God.getH()+2);     
+        repaint(God.getX()-2, God.getY()-2, 
+                God.getW()+4, God.getH()+4);     
     }
 
     private class TAdapter extends KeyAdapter {
