@@ -43,6 +43,14 @@ public class Level {
         return tiles[x][y];
     }
     
+    public int getArrayWidth(){
+        return arrayWidth;
+    }
+    
+    public int getArrayHeight(){
+        return arrayHeight;
+    }
+    
     public boolean checkWall(Entity entity){
         boolean wall = false;
         for(int i = entity.getHitX()/50; i<((entity.getHitX()+ entity.getHitW())/50)+1 ; i++){
