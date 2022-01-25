@@ -48,8 +48,8 @@ public class Board extends JPanel implements ActionListener {
 
     private void doDrawing(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
-        for (int i = 0; i<16; i++){
-            for(int j = 0; j<12; j++){
+        for (int i = 0; i<Devil.getArrayWidth(); i++){
+            for(int j = 0; j<Devil.getArrayHeight(); j++){
                 g2d.drawImage(Devil.findTile(i,j).getImage(), Devil.findTile(i,j).getX(), Devil.findTile(i,j).getY(), this);
             }
         }
