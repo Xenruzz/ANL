@@ -1,0 +1,3 @@
+Alex
+
+Finished camera pan now works with tiles and blocks
