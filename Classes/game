@@ -1,0 +1,321 @@
+package finalproject;
+
+import static finalproject.BulletBox.level;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.util.Scanner;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+public class Game extends JPanel implements ActionListener {
+    private Timer timer;
+    private Player God; //The player
+    private Level currentLevel; //Keeps track of the current level
+    public static BulletBox menu; 
+    public static DeathWindow death;
+    public static WinWindow win;
+    private final int DELAY = 10;
+    private BigInteger time; //Keeps track of the time it takes to complete a level
+    private final BigInteger a = new BigInteger("1");
+    private SaveData[] saves;
+    private FileOutputStream out;
+    
+    
+    /** Constructor
+     * Creates a viewable game
+     * @param level the level that is being played
+     */
+    public Game(int level) {
+        try{
+            if (level == 0){ //Sets the current level to the correct text files
+                currentLevel = new Level(Entity.class.getResourceAsStream("level0.txt"), 0);
+                saves = readSaveData(new FileInputStream(System.getProperty("user.dir") + "/saves/level0scores.txt"));
+
+            } else if (level == 1) {
+                currentLevel = new Level(Entity.class.getResourceAsStream("level1.txt"), 1);
+                saves = readSaveData( new FileInputStream(System.getProperty("user.dir") + "/saves/level1scores.txt"));
+
+            } else if (level == 2) {
+                currentLevel = new Level(Entity.class.getResourceAsStream("level2.txt"), 2);
+                saves = readSaveData( new FileInputStream(System.getProperty("user.dir") + "/saves/level2scores.txt"));
+
+            } else {
+                currentLevel = new Level(Entity.class.getResourceAsStream("level3.txt"), 3);
+                saves = readSaveData( new FileInputStream(System.getProperty("user.dir") + "/saves/level3scores.txt"));
+
+            }
+      
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        
+        initBoard();
+        
+    }
+
+    private void initBoard() {
+        addKeyListener(new TAdapter()); //Adds a key listener
+        setBackground(Color.black); //Sets the background to black
+        setFocusable(true);
+        
+        
+        timer = new Timer(DELAY, this);
+        timer.start(); 
+        time = new BigInteger("0"); //Sets the time to 0
+        God = new Player(currentLevel.getSpawnX(), currentLevel.getSpawnY()); //Creates the player
+        
+    }
+
+
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        try {
+            doDrawing(g); //Calls the do drawing method 
+        } catch (IOException ex) {
+            Logger.getLogger(Game.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        
+        Toolkit.getDefaultToolkit().sync();
+    }
+    
+    /** Do Drawing method
+     * Draws the game
+     * @param g the graphics to draw the game
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
+    private void doDrawing(Graphics g) throws FileNotFoundException, IOException {
+        double arrowAngle;
+        Projectile temp;
+        Graphics2D g2d = (Graphics2D) g;
+        //Loops through the entire 2D array of tiles
+        for (int i = 0; i < currentLevel.getArrayWidth(); i++){
+            for(int j = 0; j < currentLevel.getArrayHeight(); j++){
+                //Draws the image of the tile
+                g2d.drawImage(currentLevel.findTile(i,j).getImage(), ((int)currentLevel.findTile(i,j).getX()) - ((int)God.getX()) + 400, ((int)currentLevel.findTile(i,j).getY()) - ((int)God.getY()) + 300, this);
+            } 
+        }
+        //Updates the enemies in the level
+        currentLevel.updateEnemies(God);
+        g2d.setColor(Color.red); //Sets the color to red
+        
+        for (int i = 0; i<currentLevel.getEnemyNumber(); i++){ //Loops through every enemy
+            //Calculates the angle between the player and the enemy
+            arrowAngle = Math.atan2( currentLevel.findEnemy(i).getY() + currentLevel.findEnemy(i).getH()/2 - God.getY() - God.getH()/2 ,  currentLevel.findEnemy(i).getX() + currentLevel.findEnemy(i).getW()/2 - God.getX() - God.getW()/2 );
+            //Draws the enemy image
+            g2d.drawImage(currentLevel.findEnemy(i).getImage(), (int)currentLevel.findEnemy(i).getX() - (int)God.getX() + 400, (int)currentLevel.findEnemy(i).getY() - (int)God.getY() + 300, this);
+            //If the enemy is off the screen then an arrow is drawn pointing towards them
+            if (Math.abs(God.getX() - currentLevel.findEnemy(i).getX()) > 400 || Math.abs(God.getY() - currentLevel.findEnemy(i).getY()) > 300){
+                g2d.fillPolygon( new int[] {400 + God.getW()/2 + (int)(Math.cos(arrowAngle)*230),400 + God.getW()/2 + (int)(Math.cos(arrowAngle + Math.PI/72)*210),400 + God.getW()/2 + (int)(Math.cos(arrowAngle - Math.PI/72)*210)}, 
+                        new int[] {300 + God.getH()/2 + (int)(Math.sin(arrowAngle)*230),300 + God.getH()/2 + (int)(Math.sin(arrowAngle + Math.PI/72)*210),300 + God.getH()/2 + (int)(Math.sin(arrowAngle - Math.PI/72)*210)}, 3);
+            }
+            
+            for (int j = 0; j<currentLevel.findEnemy(i).getProjectileNumber(); j++){ //Loops through all the projectiles
+                temp = currentLevel.findEnemy(i).findProjectile(j); //Finds every projectile and draws its image
+                g2d.drawImage(temp.getImage(),(int)temp.getX() - (int)God.getX() + 400, (int)temp.getY() - (int)God.getY() + 300, this);
+
+               
+            }
+        }
+        
+        int health = God.getHealth(); //Gets the players health
+        for (int i = 0; i < health; i++) { //Draws an heart image for each health unit the player has
+            g2d.drawImage(SpriteSheet.heart.getImage(), 50 + i * 50, 20, this);
+        }
+        
+        //If the user loses all their health
+        if (health <= 0) {
+            if (death == null) {
+                death = new DeathWindow(menu); //The death menu is set
+            }
+            level.dispose(); //This level is removed 
+            death.setVisible(true);
+            //get rid of this window
+            remove(this);
+        }
+        
+        g2d.setColor(Color.blue); //Sets the colour to blue
+        //Draws the win tile square
+        g2d.fillRect(currentLevel.getWinIndexX()*50 - (int)God.getX() + 400, currentLevel.getWinIndexY()*50 - (int)God.getY() + 300, Tile.TILESIZE, Tile.TILESIZE);
+        arrowAngle = Math.atan2( currentLevel.getWinIndexY()*50 + Tile.TILESIZE/2 - God.getY() - God.getH()/2 ,  currentLevel.getWinIndexX()*50 + Tile.TILESIZE/2 - God.getX() - God.getW()/2 );
+        //If the win tile is off the screen then a blue arrow is drawn pointing towards it
+        if (Math.abs(God.getX() - currentLevel.getWinIndexX()*50) > 400 || Math.abs(God.getY() - currentLevel.getWinIndexY()*50) > 300){
+        g2d.fillPolygon( new int[] {400 + God.getW()/2 + (int)(Math.cos(arrowAngle)*230),400 + God.getW()/2 + (int)(Math.cos(arrowAngle + Math.PI/72)*210),400 + God.getW()/2 + (int)(Math.cos(arrowAngle - Math.PI/72)*210)}, 
+                        new int[] {300 + God.getH()/2 + (int)(Math.sin(arrowAngle)*230),300 + God.getH()/2 + (int)(Math.sin(arrowAngle + Math.PI/72)*210),300 + God.getH()/2 + (int)(Math.sin(arrowAngle - Math.PI/72)*210)}, 3);
+        }
+        
+        g2d.drawImage(God.getImage(), 400, 300, this);//Draws the player image
+        
+        g2d.setColor(Color.white); //Sets the colour to white
+        //If the current level is the tutorial level then this text is drawn
+        if (currentLevel.getLevelNum() == 0 && God.getTextBox() == true){
+            Font infoFont = new Font("TimesRoman", Font.BOLD, 20);
+            g2d.setFont(infoFont);
+            String str = "Use the arrow keys to move!";    
+            g2d.drawString(str, 300 - str.length()*2, 200);  
+            str = "Dodge the bullets shot from the enemies to survive!";
+            g2d.drawString(str, 300 - str.length()*2, 216);
+            str = "Get to the win tile without dying to win!";
+            g2d.drawString(str, 300 - str.length()*2, 232);
+            str = "If the win tile or enemies are offscreen an arrow will point out their direction!";
+            g2d.drawString(str, 300 - str.length()*3, 248);
+            str = "Good luck and have fun!";
+            g2d.drawString(str, 300 - str.length()*2, 264);
+            str = "Press Enter to make this text disappear!";
+            g2d.drawString(str, 300 - str.length()*2, 280); 
+        }
+        
+        if (currentLevel.checkWinTile(God) == true){//This checks if the player has reached the win tile
+            
+             String str = "" + (saves.length);  //String to write to the file is created
+             time.divide(BigInteger.valueOf(100)).add(BigInteger.valueOf(5)).subtract(BigInteger.valueOf(God.getHealth())).multiply(BigInteger.valueOf(100));
+            int score = Integer.parseInt(time.toString());
+            
+            
+            if (currentLevel.getLevelNum() == 0){
+                out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level0scores.txt");
+            } else if (currentLevel.getLevelNum() == 1){
+                out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level1scores.txt");
+            } else if (currentLevel.getLevelNum() == 2){
+                out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level2scores.txt");
+            } else {
+                out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level3scores.txt");
+            }
+            
+            if (win == null) {
+                win = new WinWindow(menu, saves); //The death menu is set
+            }
+            level.dispose(); //This level is removed 
+            
+            String name = JOptionPane.showInputDialog("What is your name?"); //Asks the user for their name
+            saves[saves.length-1] = new SaveData(score, name); //Adds the latest score into the array of scores
+            saves = quikSort(saves, 0, saves.length-1); //Sorts the array
+            for (int i = 0; i<saves.length; i++){  //Adds the contents of the array to the string
+                str = str + "\n" + saves[i].getScore() + " " + saves[i].getName();
+            }
+            out.write(str.getBytes()); //Writes the str which has the contents of the array to the external files
+            win.setVisible(true); //Win screen is shown
+            //get rid of this window
+            remove(this);
+            //The score is calculated
+        }
+            
+            
+            
+           
+        
+        
+        
+        
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        step(); //Every time an action is performed this method is called
+    }
+    
+    /** Step method
+     * moves the player and redraws the screen
+     */
+    private void step() {
+        God.move(currentLevel); //Moves the player
+        repaint(0, 0, 800, 600); //Repaints the level     
+        time = time.add(a); //Increases the time
+    }
+
+    private class TAdapter extends KeyAdapter {
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            God.keyReleased(e); //If a key is released the player is notified
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            God.keyPressed(e); //If a key is pressed the player is notified
+        }
+    } 
+    
+    public SaveData[] readSaveData(InputStream file){
+        try{
+        System.out.println("1");
+        Scanner scanner = new Scanner(file); //Creates a scanner
+        saves = new SaveData[scanner.nextInt() + 1]; //Initializes the 
+        for(int i = 0; i<saves.length-1; i++){ //Loops through hte entire file
+            saves[i] = new SaveData(scanner.nextInt(), scanner.next()); //Adds the contents of the file to the array
+            System.out.println(saves[i]);
+        }
+        } catch (Exception e){
+            System.out.println("test");
+        }
+        return saves;
+    }
+    
+    /** QuikSort method
+     * Sorts an array of save datas in ascending order based on score using quik sort
+     * @param numbers the array of saves
+     * @param left the left most index in the section of the array that is being sorted
+     * @param right the right most index in the section of the array that is being sorted
+     * @param pause the amount of pause between each swap
+     * @return the sorted array
+     */
+    public static SaveData[] quikSort( SaveData[] saves, int left, int right){
+        if (left >= right){ //If the left is bigger or equal to the right than we can just return the array without changes
+            return saves;
+        }
+        int i = left; //Sets a pointer to the left part of the section of the array
+        int j = right; //Sets a pointer to the right part of the section of the array
+        int pivot = saves[(left+right)/2].getScore(); //The pivot is the value that we are sorting the data around
+        while(i<j){ //This keeps looping until the two pointers pass each other meaning we've checked through the entire section
+            while(saves[i].getScore()<pivot){ //The left pointer will keep going until it finds a number larger than the pivot
+                i++; //Increases until it finds the number
+            }
+            while(saves[j].getScore()>pivot){ //The right pointer will keep going until it finds a number smaller than the pivot
+                    j--; //Decreases until it finds the number
+            }
+            if (i<j){ //Once the two pointers have found a number if the left pointer is to the left of the right pointer they swap
+                saves = swap( i,j, saves); //This swap switches a number bigger than the pivot and a number smaller than the pivot to the correct side
+                i++; //Moves the two pointers to the next number
+                j--;
+            } else if (i==j){ //If the two pointers are at the same number (this would be the pivot) they should continue but not swap
+                i++;
+                j--;
+            }
+        }
+        saves = quikSort( saves, left, j); //Once all the numbers lower than the pivot are on the left we can quik sort the left half of the array
+        saves = quikSort( saves, i, right); //Once all the numbers higher than the pivot are on the right we can quik sort the right half of the array
+        return saves; //Returns the sorted array
+    }
+    
+    /** Swap method
+     * This method swaps two items in an array 
+     * @param index1 the index of the first number that should be swapped
+     * @param index2 the index of the second number that should be swapped
+     * @param array the array that the two numbers are in
+     * @return the new array with the swapped values
+     */
+    public  static SaveData[] swap( int index1, int index2, SaveData[] array){
+        SaveData temp = array[index1]; //Sets the value of the first number into a temp variable
+        array[index1] = array[index2]; //Sets the first number to the second number
+        array[index2] = temp; //Sets the second number to the temp variable (which has the value of the first number
+   
+        return array; //Returns the swapped array
+    }
+}
