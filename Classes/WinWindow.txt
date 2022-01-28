@@ -8,6 +8,7 @@ import static finalproject.BulletBox.level;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,7 +24,7 @@ public class WinWindow extends JFrame implements ActionListener {
 
     private JButton home;
     private JButton searchButton;
-    private TextField text;
+    private TextArea text;
     private SaveData[] saves;
     private int score;
     private final int level;
@@ -41,18 +42,20 @@ public class WinWindow extends JFrame implements ActionListener {
     public WinWindow(BulletBox m, SaveData[] saves, int score, int level) throws FileNotFoundException, IOException {
         //create ui
         this.saves = saves;
+        this.score = score;
         initUI();
-
+        
         //assign menu
         menu = m;
         this.level = level;
+        
     }
 
     /**
      * Create UI
      */
     private void initUI() throws FileNotFoundException, IOException {
-        //set background image
+
         //get image icon
         setLayout(null);
         ImageIcon iconHome = new ImageIcon("src/finalproject/homeButton.jpg");
@@ -64,6 +67,7 @@ public class WinWindow extends JFrame implements ActionListener {
         iconHome = new ImageIcon(newimg1);
         //create home button
         home = new JButton(iconHome);
+        //create search button
         searchButton = new JButton();
         //set home button background to black
         home.setBackground(Color.BLACK);
@@ -72,16 +76,20 @@ public class WinWindow extends JFrame implements ActionListener {
         //add actionlistener to homebutton
         home.addActionListener(this);
         //set bounds for home button
-        home.setBounds(300, 50, 2, 50);
+        home.setBounds(300, 370, 200, 50);
+        //Adds an action listner for the search button
         searchButton.addActionListener(this);
+        //Sets bounds for the search button
         searchButton.setBounds(50, 50, 100, 100);
+        //Sets search button text
         searchButton.setText("Search");
+        //Creates a new text area
+        text = new TextArea();
+        text.setEnabled(false); //Disables the text area
+        text.setBounds(200, 50, 400, 300); //Sets the bounds for the text area
 
-        text = new TextField();
-        text.setEnabled(false);
-        text.setBounds(200, 50, 400, 300);
-
-        //add home to JFrame
+        //add home button, search button, and text area to JFrame
+        home.setVisible(true);
         add(text);
         add(home);
         add(searchButton);
@@ -89,7 +97,15 @@ public class WinWindow extends JFrame implements ActionListener {
         String name = JOptionPane.showInputDialog("What is your name?"); //Asks the user for their name
         saves[saves.length-1] = new SaveData(score, name); //Adds the latest score into the array of scores
         saves = quikSort(saves, 0, saves.length-1); //Sorts the array
-        writeFile(level, saves);
+        writeFile(level, saves); //Writes the sorted array to the save file
+        
+        String str = "HighScores"; //Creates a string to copy the highscores onto
+        for (int i = 0; i<10; i++){ //Loops through 10 times to get the best 10 scores
+            if (i<saves.length){ //If there are less than 10 scores in the array then this if statement will stop the extra scores from being created
+                 str = str + "\n" + (i+1) + ": Name: " + saves[i].getName() + " Score: " + saves[i].getScore();
+            }
+        }
+        text.setText(str); //Sets the text to the highscore text
 
         pack();
         //set title
@@ -98,7 +114,7 @@ public class WinWindow extends JFrame implements ActionListener {
         setSize(800, 600);
         //set default close operation
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
+        setResizable(true);
         setLocationRelativeTo(null);
     }
 
@@ -109,7 +125,7 @@ public class WinWindow extends JFrame implements ActionListener {
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == home) {
+        if (e.getSource() == home) { //if the home button is clicked
             //if menu does not exit
             if (menu == null) {
                 //create new menu
@@ -120,47 +136,58 @@ public class WinWindow extends JFrame implements ActionListener {
             //hide this window
             this.dispose();
         }
-        if (e.getSource() == searchButton) {
-            int index = findScore(saves);
-            text.setText("Name: " + saves[index].getName() + " Score: " + saves[index].getScore());
-
-            text.setText("Name: " + saves[0].getName() + " Score: " + saves[0].getScore() + "\n"
-                    + "Name: " + saves[1].getName() + " Score: " + saves[1].getScore() + "\n"
-                    + "Name: " + saves[2].getName() + " Score: " + saves[2].getScore() + "\n"
-                    + "Name: " + saves[3].getName() + " Score: " + saves[3].getScore() + "\n"
-                    + "Name: " + saves[4].getName() + " Score: " + saves[4].getScore() + "\n");
-        }
-    }
-
-    private int findScore(SaveData[] saves) {
-        String name = JOptionPane.showInputDialog("Enter the name of a player:");
-        int best = -1, index = -1;
-
-        for (int i = 0; i < saves.length; i++) {
-            if (saves[i].getName().equals(name) && (saves[i].getScore() < best || best < 0)) {
-                best = saves[i].getScore();
-                index = i;
+        if (e.getSource() == searchButton) { //If the search button is clicked
+            int index = findScore(saves); //Searh for the users desired person
+            if (index == -1){
+                text.setText("That player has never achieved a score.");
+            } else {
+                text.setText(saves[index].getName() + "'s best score is: " + saves[index].getScore());
             }
+
+            
         }
-        return index;
     }
     
+    /** Find score method
+     * Finds a particular score in an array of saves
+     * @param saves the array of saves
+     * @return the index of the found person (-1 if they were not found)
+     */
+    private int findScore(SaveData[] saves) {
+        String name = JOptionPane.showInputDialog("Enter the name of a player:"); //Asks the user for the name of the person they are searching for
+
+        for (int i = 0; i < saves.length; i++) { //Loops through the array of saves
+            if (saves[i].getName().equals(name)){ //If we find the person 
+
+                return i; //Return the index (since the array is sorted the first instance of someones name will be their best score
+            }
+        }
+        return -1; //If the person was not found -1 is returnned
+    }
+    
+    /** Write File
+     * Writes the array of saves to the save file
+     * @param level which save file this should be written to
+     * @param saves the array of saves
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
     public void writeFile(int level, SaveData[] saves) throws FileNotFoundException, IOException {
-        if (level == 0){
-                out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level0scores.txt");
-            } else if (level == 1){
-                out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level1scores.txt");
-            } else if (level == 2){
-                out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level2scores.txt");
-            } else {
-                out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level3scores.txt");
-            }
-            String str = "" + (saves.length);  //String to write to the file is created
-            out.write(str.getBytes()); //Writes the str which has the contents of the array to the external files
-            
-            for (int i = 0; i<saves.length; i++){  //Adds the contents of the array to the string
-                str = str + "\n" + saves[i].getScore() + " " + saves[i].getName();
-            }
+        if (level == 0){ //Determines which save file will be written to
+            out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level0scores.txt");
+        } else if (level == 1){
+            out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level1scores.txt");
+        } else if (level == 2){
+            out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level2scores.txt");
+        } else {
+            out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level3scores.txt");
+        }
+        String str = "" + (saves.length);  //String to write to the file is created
+
+        for (int i = 0; i<saves.length; i++){  //Adds the contents of the array to the string
+            str = str + "\n" + saves[i].getScore() + " " + saves[i].getName();
+        }
+        out.write(str.getBytes()); //Writes the str which has the contents of the array to the external files
     }
 
     /** QuikSort method
