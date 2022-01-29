@@ -1,0 +1,244 @@
+//Alex, Lado, Nathan
+//January 27 2022
+//Death screen
+package finalproject;
+
+import static finalproject.GameWindow.menu;
+import static finalproject.BulletBox.level;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.TextArea;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+
+public class WinWindow extends JFrame implements ActionListener {
+
+    private JButton home;
+    private JButton searchButton;
+    private TextArea text;
+    private SaveData[] saves;
+    private int score;
+    private final int level;
+    private FileOutputStream out;
+    
+    /**
+     * Primary Constructor
+     *
+     * @param m - the bullet box menu
+     * @param saves
+     * @param score
+     * @param level
+     * @throws java.io.FileNotFoundException
+     */
+    public WinWindow(BulletBox m, SaveData[] saves, int score, int level) throws FileNotFoundException, IOException {
+        //create ui
+        this.saves = saves;
+        this.score = score;
+        this.level = level;
+        initUI();
+        
+        //assign menu
+        menu = m;
+        
+        
+    }
+
+    /**
+     * Create UI
+     */
+    private void initUI() throws FileNotFoundException, IOException {
+
+        //get image icon
+        setLayout(null);
+        ImageIcon iconHome = new ImageIcon("src/finalproject/homeButton.jpg");
+        //get the image from the icon
+        Image img1 = iconHome.getImage();
+        //resize image icon
+        Image newimg1 = img1.getScaledInstance(200, 50, java.awt.Image.SCALE_SMOOTH);
+        //get image home image
+        iconHome = new ImageIcon(newimg1);
+        //create home button
+        home = new JButton(iconHome);
+        //create search button
+        searchButton = new JButton();
+        //set home button background to black
+        home.setBackground(Color.BLACK);
+        //set home button to be opaque
+        home.setOpaque(true);
+        //add actionlistener to homebutton
+        home.addActionListener(this);
+        //set bounds for home button
+        home.setBounds(300, 370, 200, 50);
+        //Adds an action listner for the search button
+        searchButton.addActionListener(this);
+        //Sets bounds for the search button
+        searchButton.setBounds(50, 50, 100, 100);
+        //Sets search button text
+        searchButton.setText("Search");
+        //Creates a new text area
+        text = new TextArea();
+        text.setEnabled(false); //Disables the text area
+        text.setBounds(200, 50, 400, 300); //Sets the bounds for the text area
+
+        //add home button, search button, and text area to JFrame
+        home.setVisible(true);
+        add(text);
+        add(home);
+        add(searchButton);
+        
+        String name = JOptionPane.showInputDialog("What is your name?"); //Asks the user for their name
+        saves[saves.length-1] = new SaveData(score, name); //Adds the latest score into the array of scores
+        saves = quikSort(saves, 0, saves.length-1); //Sorts the array
+        writeFile(level, saves); //Writes the sorted array to the save file
+        
+        String str = "HighScores"; //Creates a string to copy the highscores onto
+        for (int i = 0; i<10; i++){ //Loops through 10 times to get the best 10 scores
+            if (i<saves.length){ //If there are less than 10 scores in the array then this if statement will stop the extra scores from being created
+                 str = str + "\n" + (i+1) + ": Name: " + saves[i].getName() + " Score: " + saves[i].getScore();
+            }
+        }
+        text.setText(str); //Sets the text to the highscore text
+
+        pack();
+        //set title
+        setTitle("Bullet Box");
+        //set dimensions
+        setSize(800, 600);
+        //set default close operation
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(true);
+        setLocationRelativeTo(null);
+    }
+
+    /**
+     * ActionEvent listener
+     *
+     * @param e the ActionEvent
+     */
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == home) { //if the home button is clicked
+            //if menu does not exit
+            if (menu == null) {
+                //create new menu
+                menu = new BulletBox();
+            }
+            //set menu to visible
+            menu.setVisible(true);
+            //hide this window
+            this.dispose();
+        }
+        if (e.getSource() == searchButton) { //If the search button is clicked
+            int index = findScore(saves); //Searh for the users desired person
+            if (index == -1){
+                text.setText("That player has never achieved a score.");
+            } else {
+                text.setText(saves[index].getName() + "'s best score is: " + saves[index].getScore());
+            }
+
+            
+        }
+    }
+    
+    /** Find score method
+     * Finds a particular score in an array of saves
+     * @param saves the array of saves
+     * @return the index of the found person (-1 if they were not found)
+     */
+    private int findScore(SaveData[] saves) {
+        String name = JOptionPane.showInputDialog("Enter the name of a player:"); //Asks the user for the name of the person they are searching for
+
+        for (int i = 0; i < saves.length; i++) { //Loops through the array of saves
+            if (saves[i].getName().equals(name)){ //If we find the person 
+
+                return i; //Return the index (since the array is sorted the first instance of someones name will be their best score
+            }
+        }
+        return -1; //If the person was not found -1 is returnned
+    }
+    
+    /** Write File
+     * Writes the array of saves to the save file
+     * @param level which save file this should be written to
+     * @param saves the array of saves
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
+    public void writeFile(int level, SaveData[] saves) throws FileNotFoundException, IOException {
+        if (level == 0){ //Determines which save file will be written to
+            out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level0scores.txt");
+        } else if (level == 1){
+            out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level1scores.txt");
+        } else if (level == 2){
+            out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level2scores.txt");
+        } else {
+            out = new FileOutputStream(System.getProperty("user.dir") + "/saves/level3scores.txt");
+        }
+        String str = "" + (saves.length);  //String to write to the file is created
+
+        for (int i = 0; i<saves.length; i++){  //Adds the contents of the array to the string
+            str = str + "\n" + saves[i].getScore() + " " + saves[i].getName();
+        }
+        out.write(str.getBytes()); //Writes the str which has the contents of the array to the external files
+    }
+
+    /** QuikSort method
+     * Sorts an array of save datas in ascending order based on score using quik sort
+     * @param numbers the array of saves
+     * @param left the left most index in the section of the array that is being sorted
+     * @param right the right most index in the section of the array that is being sorted
+     * @param pause the amount of pause between each swap
+     * @return the sorted array
+     */
+    public static SaveData[] quikSort( SaveData[] saves, int left, int right){
+        if (left >= right){ //If the left is bigger or equal to the right than we can just return the array without changes
+            return saves;
+        }
+        int i = left; //Sets a pointer to the left part of the section of the array
+        int j = right; //Sets a pointer to the right part of the section of the array
+        int pivot = saves[(left+right)/2].getScore(); //The pivot is the value that we are sorting the data around
+        while(i<j){ //This keeps looping until the two pointers pass each other meaning we've checked through the entire section
+            while(saves[i].getScore()<pivot){ //The left pointer will keep going until it finds a number larger than the pivot
+                i++; //Increases until it finds the number
+            }
+            while(saves[j].getScore()>pivot){ //The right pointer will keep going until it finds a number smaller than the pivot
+                    j--; //Decreases until it finds the number
+            }
+            if (i<j){ //Once the two pointers have found a number if the left pointer is to the left of the right pointer they swap
+                saves = swap( i,j, saves); //This swap switches a number bigger than the pivot and a number smaller than the pivot to the correct side
+                i++; //Moves the two pointers to the next number
+                j--;
+            } else if (i==j){ //If the two pointers are at the same number (this would be the pivot) they should continue but not swap
+                i++;
+                j--;
+            }
+        }
+        saves = quikSort( saves, left, j); //Once all the numbers lower than the pivot are on the left we can quik sort the left half of the array
+        saves = quikSort( saves, i, right); //Once all the numbers higher than the pivot are on the right we can quik sort the right half of the array
+        return saves; //Returns the sorted array
+    }
+    
+    /** Swap method
+     * This method swaps two items in an array 
+     * @param index1 the index of the first number that should be swapped
+     * @param index2 the index of the second number that should be swapped
+     * @param array the array that the two numbers are in
+     * @return the new array with the swapped values
+     */
+    public static SaveData[] swap( int index1, int index2, SaveData[] array){
+        SaveData temp = array[index1]; //Sets the value of the first number into a temp variable
+        array[index1] = array[index2]; //Sets the first number to the second number
+        array[index2] = temp; //Sets the second number to the temp variable (which has the value of the first number
+   
+        return array; //Returns the swapped array
+    }
+}
