@@ -4,7 +4,9 @@ ANL is a team which includes the developers of this game, Bullet Box, which is a
 # Features
 - 3 different levels with increasing difficulty and variety
 - Multiple enemies and obstacles to dodge and navigate
-- A simple but unique user interface
+- A simple but effective menu system
+- Ability to save scores and search them by player names
+- And more!
 
 # Installation
 To run ANL's Bullet Box on your computer, you can download the completed version release, extract the contents, and run the BulletBox.jar file from extracting it from the BulletBoxJar zip.
